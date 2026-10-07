@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YB Accessories Katalog</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#f7f8f7;color:#222}
+header{background:#a8d9c7;padding:24px;text-align:center}
+h1{margin:0;font-size:27px}
+main{max-width:1100px;margin:auto;padding:20px}
+#products{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px}
+.card{background:white;padding:15px;border-radius:12px;box-shadow:0 2px 8px #ddd}
+.card img{width:100%;aspect-ratio:1;object-fit:cover}
+button{background:#157c60;color:white;border:0;padding:12px;border-radius:8px;cursor:pointer}
+.card button{width:100%}
+#cart{background:white;padding:20px;margin-top:25px;border-radius:12px}
+</style>
+</head>
+<body>
+<header>
+<h1>YB ACCESSORIES</h1>
+<p>Toptan Ürün Kataloğu</p>
+</header>
+<main>
+<h2>Ürünlerimiz</h2>
+<div id="products"></div>
+<section id="cart">
+<h2>Sepetim</h2>
+<div id="items">Sepetiniz boş.</div>
+<p id="total"></p>
+<button onclick="order()">WhatsApp ile Sipariş Ver</button>
+</section>
+</main>
+<script>
+const phone="905368362895";
+let products=[],cart={};
+const money=n=>Number(n).toLocaleString("tr-TR",{style:"currency",currency:"TRY"});
+async function load(){
+ try{
+ const r=await fetch("./products.json",{cache:"no-store"});
+ if(!r.ok)throw Error();
+ const data=await r.json();
+ products=Array.isArray(data)?data:data.products||[];
+ document.getElementById("products").innerHTML=products.map((p,i)=>`
+ <div class="card">
+ ${p.image?`<img src="${p.image}" alt="">`:""}
+ <h3>${p.name||"Ürün"}</h3>
+ <p>${money(p.price||0)}</p>
+ <button onclick="add(${i})">Sepete Ekle</button>
+ </div>`).join("")||"Henüz ürün eklenmedi.";
+ }catch(e){
+ document.getElementById("products").textContent="Ürün listesi yüklenemedi.";
+ }
+}
+function add(i){cart[i]=(cart[i]||0)+1;render()}
+function render(){
+ let lines=[],total=0;
+ Object.entries(cart).forEach(([i,q])=>{
+ const p=products[i];if(!p)return;
+ total+=Number(p.price||0)*q;
+ lines.push(`${p.name} x ${q}`);
+ });
+ document.getElementById("items").textContent=lines.join(" | ")||"Sepetiniz boş.";
+ document.getElementById("total").textContent=lines.length?"Toplam: "+money(total):"";
+}
+function order(){
+ if(!Object.keys(cart).length){alert("Önce ürün ekleyin.");return}
+ let lines=["Merhaba, YB Accessories sipariş talebim:"];
+ let total=0;
+ Object.entries(cart).forEach(([i,q])=>{
+ const p=products[i];if(!p)return;
+ lines.push(`${p.name} - ${q} adet`);
+ total+=Number(p.price||0)*q;
+ });
+ lines.push("Toplam: "+money(total));
+ window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(lines.join("\n")),"_blank");
+}
+load();
+</script>
+</body>
+</html>
