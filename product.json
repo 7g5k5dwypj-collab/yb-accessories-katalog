@@ -1,0 +1,19 @@
+
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Örnek Küpe",
+      "price": 50,
+      "image": "",
+      "category": "Küpe"
+    },
+    {
+      "id": 2,
+      "name": "Örnek Kolye",
+      "price": 100,
+      "image": "",
+      "category": "Kolye"
+    }
+  ]
+}
