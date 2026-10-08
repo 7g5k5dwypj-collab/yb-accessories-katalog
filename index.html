@@ -3,46 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>YB Accessories | Toptan Katalog</title>
+<title>YB Accessories — Toptan Ürün Kataloğu</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f7f8f7;color:#263b34;font-family:Arial,sans-serif;padding-bottom:150px}
-header{background:#a8d9c7;padding:24px 16px;text-align:center}
-h1{margin:0;font-size:25px;letter-spacing:2px}
-header p{margin:8px 0 0;font-size:14px}
+body{margin:0;padding-bottom:180px;background:#f7f8f7;color:#25382f;font-family:Arial,sans-serif}
+header{background:#a8d9c7;padding:26px 16px;text-align:center}
+h1{margin:0;font-size:27px;letter-spacing:1px}
+header p{margin-bottom:0}
 main{max-width:1100px;margin:auto;padding:16px}
-#categories{display:flex;gap:8px;overflow:auto;padding-bottom:12px}
+#categories{display:flex;gap:9px;overflow-x:auto;padding:8px 0 16px}
 button,input,select{font:inherit}
-button{cursor:pointer}
-.category{border:1px solid #d4ded8;background:white;border-radius:24px;padding:10px 18px;white-space:nowrap}
-.category.active{background:#a8d9c7;border-color:#a8d9c7}
-.tools{display:flex;gap:8px;margin:4px 0 18px}
-#search{width:100%;min-width:0;background:#eee;border:0;border-radius:24px;padding:14px}
-#sort{border:1px solid #d4ded8;background:white;border-radius:20px;padding:8px;max-width:120px}
+button{cursor:pointer;border:0}
+.chip{padding:12px 20px;border:1px solid #dce5df;border-radius:30px;background:white;color:#405648;white-space:nowrap}
+.chip.active{background:#a8d9c7;border-color:#a8d9c7}
+.tools{display:flex;gap:10px;margin-bottom:20px}
+#search{flex:1;min-width:0;padding:14px;border:1px solid #e0e6e2;border-radius:14px;background:white}
+#sort{max-width:145px;border:1px solid #e0e6e2;border-radius:14px;padding:10px;background:white}
 #products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.card{background:white;border:1px solid #e3e7e4;border-radius:20px;overflow:hidden}
-.photo{width:100%;aspect-ratio:1;background:#f1f0ed;display:flex;align-items:center;justify-content:center}
+.card{overflow:hidden;background:white;border:1px solid #e2e8e3;border-radius:20px;display:flex;flex-direction:column}
+.photo{aspect-ratio:1;background:#f0efea;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .photo img{width:100%;height:100%;object-fit:contain}
-.info{padding:12px}
-.name{font-size:15px;margin:0 0 6px;line-height:1.4}
-.category-name{font-size:12px;color:#89938d;margin:0 0 12px}
-.price{font-size:19px;font-weight:bold;margin-bottom:12px}
-.quantity{display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid #eee;padding-top:12px}
-.quantity button{width:39px;height:40px;border:0;border-radius:12px;background:#a8d9c7;color:#263b34;font-size:24px;flex-shrink:0}
-.quantity input{width:100%;min-width:0;max-width:65px;height:40px;text-align:center;font-weight:bold;border:1px solid #e4e9e5;border-radius:10px;background:white}
+.photo span{font-size:13px;color:#7b817c;text-align:center;padding:10px}
+.details{padding:13px;flex:1;display:flex;flex-direction:column}
+.details h2{font-size:17px;margin:0 0 7px;overflow-wrap:anywhere}
+.category{font-size:13px;color:#7a877e;margin:0 0 12px}
+.price{font-weight:bold;font-size:19px;margin:0 0 15px}
+.quantity{display:flex;gap:6px;align-items:center;border-top:1px solid #edf0ed;padding-top:12px;margin-top:auto}
+.quantity button{width:40px;height:42px;flex-shrink:0;border-radius:12px;background:#a8d9c7;font-size:23px;color:#254738}
+.quantity input{width:100%;min-width:0;height:42px;border:1px solid #e0e6e2;border-radius:10px;text-align:center;font-size:17px;appearance:textfield}
 .quantity input::-webkit-inner-spin-button{appearance:none}
-.quantity input{appearance:textfield}
-#cart{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #dce5de;padding:12px 16px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px #0000000b}
+.empty{grid-column:1/-1;padding:35px;text-align:center;color:#778379}
+#cart{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #dae5dd;padding:14px 16px;padding-bottom:calc(14px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px #00000008}
 .cart-inner{max-width:1068px;margin:auto}
-.summary{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:15px}
-.summary small{display:block;color:#79877f;margin-top:4px}
-#order{width:100%;border:0;border-radius:12px;background:#157c60;color:white;padding:14px;font-weight:bold}
-#order:disabled{background:#afbab4;cursor:default}
-#status{text-align:center;color:#79877f;padding:20px}
+.cart-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+#count{font-size:13px;color:#778379;margin-top:5px}
+#total{font-weight:bold;font-size:21px}
+#order{width:100%;padding:15px;border-radius:12px;background:#157c60;color:white;margin-top:12px;font-weight:bold}
+#order:disabled{background:#a9bbb1;cursor:default}
+#status{line-height:1.5;color:#65766b}
 @media(min-width:700px){
-#products{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
-.name{font-size:18px}
-.info{padding:16px}
+#products{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
 }
 @media(min-width:1000px){
 #products{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -56,190 +56,258 @@ button{cursor:pointer}
 </header>
 
 <main>
-<div id="categories"></div>
+<nav id="categories" aria-label="Ürün kategorileri"></nav>
 <div class="tools">
-<input id="search" type="search" placeholder="Ürün ara…" aria-label="Ürün ara">
+<input id="search" type="search" placeholder="Ürün ara..."
+ aria-label="Ürün ara">
 <select id="sort" aria-label="Ürünleri sırala">
-<option value="default">Sırala</option>
-<option value="low">Fiyat artan</option>
-<option value="high">Fiyat azalan</option>
+<option value="default">En Yeni</option>
+<option value="low">Fiyat: Artan</option>
+<option value="high">Fiyat: Azalan</option>
 </select>
 </div>
+<p id="status" role="status">Ürünler yükleniyor...</p>
 <div id="products"></div>
-<p id="status">Ürünler yükleniyor…</p>
 </main>
 
-<section id="cart">
+<footer id="cart">
 <div class="cart-inner">
-<div class="summary">
-<div><strong>Sepetim</strong><small id="count">0 ürün · 0 adet</small></div>
-<strong id="total">₺0,00</strong>
+<div class="cart-row">
+<div>
+<strong>Sepetim</strong>
+<div id="count">0 ürün · 0 adet</div>
+</div>
+<div id="total">₺0,00</div>
 </div>
 <button id="order" disabled>WhatsApp ile Sipariş Ver</button>
 </div>
-</section>
+</footer>
 
+<script src="./yb-config.js"></script>
 <script>
+const $ = id => document.getElementById(id);
 const phone = "905368362895";
-let products = [], category = "";
 const cart = new Map();
-const money = n => Number(n).toLocaleString("tr-TR", {
-  style: "currency", currency: "TRY"
-});
+let products = [], category = "";
+
+const money = value => Number(value).toLocaleString(
+  "tr-TR", {style:"currency", currency:"TRY"}
+);
 
 function element(tag, className, text) {
-  const el = document.createElement(tag);
-  if (className) el.className = className;
-  if (text !== undefined) el.textContent = text;
-  return el;
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
 }
 
-function setQuantity(index, value) {
-  const number = Number(value);
-  const quantity = Number.isFinite(number)
-    ? Math.max(0, Math.min(99999, Math.floor(number))) : 0;
-  if (quantity) cart.set(index, quantity);
-  else cart.delete(index);
+function setQuantity(id, value) {
+  let quantity = Number(value);
+  quantity = Number.isFinite(quantity)
+    ? Math.max(0, Math.min(99999, Math.floor(quantity))) : 0;
+  if (quantity) cart.set(id, quantity);
+  else cart.delete(id);
   updateCart();
   return quantity;
 }
 
 function updateCart() {
-  let total = 0, quantity = 0;
-  cart.forEach((q, index) => {
-    total += Number(products[index].price || 0) * q;
-    quantity += q;
+  let total = 0, units = 0, kinds = 0;
+  products.forEach(product => {
+    const quantity = cart.get(product.id) || 0;
+    if (!quantity) return;
+    kinds++;
+    units += quantity;
+    total += Math.round(Number(product.price) * 100) * quantity;
   });
-  document.getElementById("count").textContent =
-    `${cart.size} ürün · ${quantity} adet`;
-  document.getElementById("total").textContent = money(total);
-  document.getElementById("order").disabled = cart.size === 0;
+  $("count").textContent = kinds + " ürün · " + units + " adet";
+  $("total").textContent = money(total / 100);
+  $("order").disabled = units === 0;
 }
 
 function renderCategories() {
-  const container = document.getElementById("categories");
-  container.replaceChildren();
+  $("categories").replaceChildren();
   const names = ["", ...new Set(
-    products.map(p => p.category).filter(Boolean)
+    products.map(product => product.category).filter(Boolean)
   )];
   names.forEach(name => {
-    const button = element("button",
-      "category" + (category === name ? " active" : ""),
-      name || "Tümü");
+    const button = element(
+      "button", "chip" + (category === name ? " active" : ""),
+      name || "Tümü"
+    );
+    button.setAttribute("aria-pressed", String(category === name));
     button.onclick = () => {
       category = name;
       renderCategories();
       renderProducts();
     };
-    container.append(button);
+    $("categories").append(button);
   });
 }
 
 function renderProducts() {
-  const container = document.getElementById("products");
-  container.replaceChildren();
-  const query = document.getElementById("search").value
-    .trim().toLocaleLowerCase("tr-TR");
-  let list = products.map((p, index) => ({ p, index }))
-    .filter(({p}) => (!category || p.category === category) &&
-      String(p.name || "").toLocaleLowerCase("tr-TR").includes(query));
+  $("products").replaceChildren();
+  const search = $("search").value.trim().toLocaleLowerCase("tr-TR");
+  const visible = products.filter(product => {
+    const text = (product.name + " " + product.category)
+      .toLocaleLowerCase("tr-TR");
+    return (!category || product.category === category)
+      && (!search || text.includes(search));
+  });
 
-  const sort = document.getElementById("sort").value;
-  if (sort !== "default") list.sort((a,b) =>
-    sort === "low"
-      ? Number(a.p.price || 0) - Number(b.p.price || 0)
-      : Number(b.p.price || 0) - Number(a.p.price || 0));
+  if ($("sort").value === "low") {
+    visible.sort((a, b) => Number(a.price) - Number(b.price));
+  } else if ($("sort").value === "high") {
+    visible.sort((a, b) => Number(b.price) - Number(a.price));
+  }
 
-  list.forEach(({p, index}) => {
+  if (!visible.length) {
+    $("products").append(element(
+      "p", "empty",
+      products.length ? "Aramana uygun ürün bulunamadı."
+        : "Henüz ürün eklenmedi."
+    ));
+    return;
+  }
+
+  visible.forEach(product => {
     const card = element("article", "card");
     const photo = element("div", "photo");
-    if (p.image) {
-      const img = element("img");
-      img.src = p.image;
-      img.alt = p.name || "Ürün";
-      img.loading = "lazy";
-      photo.append(img);
-    } else photo.textContent = "Fotoğraf hazırlanıyor";
 
-    const info = element("div", "info");
-    info.append(
-      element("h2", "name", p.name || "Ürün"),
-      element("p", "category-name", p.category || ""),
-      element("div", "price", money(p.price || 0))
+    if (product.image) {
+      const image = document.createElement("img");
+      image.src = product.image;
+      image.alt = product.name;
+      image.loading = "lazy";
+      image.onerror = () => {
+        photo.replaceChildren(element(
+          "span", "", "Fotoğraf yüklenemedi"
+        ));
+      };
+      photo.append(image);
+    } else {
+      photo.append(element("span", "", "Fotoğraf hazırlanıyor"));
+    }
+
+    const details = element("div", "details");
+    details.append(
+      element("h2", "", product.name),
+      element("p", "category", product.category),
+      element("p", "price", money(product.price))
     );
 
     const controls = element("div", "quantity");
     const minus = element("button", "", "−");
-    const input = element("input");
     const plus = element("button", "", "+");
+    const input = document.createElement("input");
     input.type = "number";
+    input.inputMode = "numeric";
     input.min = "0";
     input.max = "99999";
     input.step = "1";
-    input.inputMode = "numeric";
-    input.value = cart.get(index) || 0;
-    input.setAttribute("aria-label", `${p.name || "Ürün"} adedi`);
-    minus.setAttribute("aria-label", "Adedi azalt");
-    plus.setAttribute("aria-label", "Adedi artır");
+    input.value = cart.get(product.id) || 0;
+    input.setAttribute("aria-label", product.name + " sipariş adedi");
+    minus.setAttribute("aria-label", product.name + " adedini azalt");
+    plus.setAttribute("aria-label", product.name + " adedini artır");
 
-    input.oninput = () => setQuantity(index, input.value);
-    input.onchange = () => {
-      input.value = setQuantity(index, input.value);
-    };
     minus.onclick = () => {
-      input.value = setQuantity(index, (cart.get(index) || 0) - 1);
+      input.value = setQuantity(
+        product.id, (cart.get(product.id) || 0) - 1
+      );
     };
     plus.onclick = () => {
-      input.value = setQuantity(index, (cart.get(index) || 0) + 1);
+      input.value = setQuantity(
+        product.id, (cart.get(product.id) || 0) + 1
+      );
+    };
+    input.oninput = () => {
+      if (input.value === "") {
+        setQuantity(product.id, 0);
+      } else {
+        input.value = setQuantity(product.id, input.value);
+      }
+    };
+    input.onblur = () => {
+      input.value = cart.get(product.id) || 0;
     };
 
     controls.append(minus, input, plus);
-    info.append(controls);
-    card.append(photo, info);
-    container.append(card);
+    details.append(controls);
+    card.append(photo, details);
+    $("products").append(card);
   });
-
-  document.getElementById("status").textContent =
-    list.length ? "" : "Ürün bulunamadı.";
 }
 
-document.getElementById("search").oninput = renderProducts;
-document.getElementById("sort").onchange = renderProducts;
+$("search").oninput = renderProducts;
+$("sort").onchange = renderProducts;
 
-document.getElementById("order").onclick = () => {
-  if (!cart.size) return;
+$("order").onclick = () => {
   const lines = ["Merhaba, YB Accessories sipariş talebim:", ""];
   let total = 0;
-  cart.forEach((q, index) => {
-    const p = products[index];
-    const subtotal = Number(p.price || 0) * q;
-    lines.push(`${p.name} — ${q} adet`);
-    lines.push(`Birim fiyat: ${money(p.price || 0)}`);
-    lines.push(`Tutar: ${money(subtotal)}`);
-    if (p.image) lines.push(`Ürün fotoğrafı: ${p.image}`);
-    lines.push("");
+  products.forEach(product => {
+    const quantity = cart.get(product.id) || 0;
+    if (!quantity) return;
+    const subtotal = Math.round(Number(product.price) * 100) * quantity;
     total += subtotal;
+    lines.push(
+      product.name + " — " + quantity + " adet",
+      "Birim fiyat: " + money(product.price),
+      "Tutar: " + money(subtotal / 100)
+    );
+    if (product.image) {
+      lines.push("Ürün fotoğrafı: " + product.image);
+    }
+    lines.push("");
   });
-  lines.push(`Toplam: ${money(total)}`);
-  window.open(
-    `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`,
-    "_blank", "noopener,noreferrer"
-  );
+  if (!cart.size) return;
+  lines.push("Toplam: " + money(total / 100));
+  const url = "https://wa.me/" + phone + "?text=" +
+    encodeURIComponent(lines.join("\n"));
+  window.open(url, "_blank", "noopener,noreferrer");
 };
 
 async function load() {
   try {
-    const response = await fetch("./product.json", {cache:"no-store"});
-    if (!response.ok) throw new Error();
-    const data = await response.json();
-    products = Array.isArray(data) ? data : data.products;
-    if (!Array.isArray(products)) throw new Error();
+    const config = window.YB_CONFIG;
+    if (!config || !config.url || !config.key) {
+      throw new Error("Bağlantı ayarları yüklenemedi.");
+    }
+
+    const loaded = [];
+    const pageSize = 500;
+    let offset = 0;
+
+    while (true) {
+      const query = new URLSearchParams({
+        select: "id,name,price,category,image",
+        active: "eq.true",
+        order: "created_at.desc,id.desc",
+        limit: String(pageSize),
+        offset: String(offset)
+      });
+      const response = await fetch(
+        config.url + "/rest/v1/yb_products?" + query,
+        {
+          headers: {apikey: config.key},
+          cache: "no-store"
+        }
+      );
+      if (!response.ok) throw new Error("Ürünler alınamadı.");
+      const page = await response.json();
+      if (!Array.isArray(page)) throw new Error("Ürün listesi okunamadı.");
+      loaded.push(...page);
+      if (page.length < pageSize) break;
+      offset += page.length;
+    }
+
+    products = loaded;
+    $("status").textContent = "";
     renderCategories();
     renderProducts();
     updateCart();
-  } catch {
-    document.getElementById("status").textContent =
-      "Ürünler yüklenemedi. Sayfayı yenileyin.";
+  } catch (error) {
+    $("status").textContent =
+      "Ürünler yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.";
   }
 }
 load();
