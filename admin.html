@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YB Accessories — Ürün Yönetimi</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f6f8f7;color:#25382f;font-family:Arial,sans-serif}
+header{background:#a8d9c7;padding:22px;text-align:center}
+h1{margin:0;font-size:24px}
+main{max-width:720px;margin:auto;padding:18px}
+section{background:white;padding:20px;border-radius:16px;margin-bottom:20px}
+h2{margin-top:0;font-size:21px}
+label{display:block;margin:16px 0 7px;font-weight:bold}
+input,button{font:inherit}
+input:not([type=checkbox]){width:100%;padding:13px;border:1px solid #ccd8d1;border-radius:10px}
+button{border:0;border-radius:10px;padding:13px 16px;background:#157c60;color:white;cursor:pointer}
+button:disabled{opacity:.5;cursor:wait}
+.secondary{background:#e9f1ed;color:#25382f}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.actions button{flex:1}
+fieldset{border:0;padding:0;margin:0;min-width:0}
+.check{display:flex;align-items:center;gap:10px;font-weight:normal}
+.check input{width:20px;height:20px}
+#preview{display:block;width:100%;max-height:320px;object-fit:contain;background:#f5f5f3;border-radius:12px;margin-top:12px}
+[hidden]{display:none!important}
+#message{white-space:pre-wrap;padding:12px;border-radius:10px;background:#e8f2ed;margin-bottom:18px}
+.product{display:flex;align-items:center;gap:12px;border-top:1px solid #e7ece9;padding:15px 0}
+.product img{width:74px;height:74px;object-fit:contain;background:#f5f5f3;border-radius:10px}
+.product .info{flex:1;min-width:0}
+.product strong{display:block;overflow-wrap:anywhere}
+.product small{display:block;margin-top:6px;color:#65766b}
+.note{color:#65766b;font-size:14px;line-height:1.5}
+a{color:#157c60}
+</style>
+</head>
+<body>
+<header>
+<h1>YB ACCESSORIES</h1>
+<p>Ürün Yönetimi</p>
+</header>
+
+<main>
+<div id="message" role="status" aria-live="polite" hidden></div>
+
+<section id="login">
+<h2>Yönetici Girişi</h2>
+<form id="loginForm">
+<label for="email">E-posta</label>
+<input id="email" type="email"
+ value="abdullah.yilmaz1@hotmail.com"
+ autocomplete="username" required>
+<label for="password">Şifre</label>
+<input id="password" type="password"
+ autocomplete="current-password" required>
+<div class="actions">
+<button id="loginButton" type="submit">Giriş Yap</button>
+</div>
+</form>
+</section>
+
+<div id="panel" hidden>
+<section>
+<div class="actions">
+<button id="newProduct" class="secondary">Yeni Ürün</button>
+<button id="logout" class="secondary">Çıkış Yap</button>
+</div>
+</section>
+
+<section>
+<h2 id="formTitle">Yeni Ürün Ekle</h2>
+<form id="productForm">
+<fieldset id="fields">
+<label>Ürün Fotoğrafı</label>
+<div class="actions">
+<button id="cameraButton" type="button">Fotoğraf Çek</button>
+<button id="galleryButton" type="button" class="secondary">
+Galeriden Seç
+</button>
+</div>
+<input id="camera" type="file" accept="image/*"
+ capture="environment" hidden>
+<input id="gallery" type="file" accept="image/*" hidden>
+<img id="preview" alt="Ürün fotoğrafı önizlemesi" hidden>
+
+<label for="name">Ürün Adı</label>
+<input id="name" placeholder="Örneğin: Çiçek Model Küpe"
+ maxlength="180" required>
+
+<label for="price">Birim Fiyatı (TL)</label>
+<input id="price" type="text" inputmode="decimal"
+ placeholder="Örneğin: 50 veya 50,50" required>
+
+<label for="category">Kategori</label>
+<input id="category" list="categoryList"
+ placeholder="Örneğin: Küpe" maxlength="80" required>
+<datalist id="categoryList">
+<option value="Küpe">
+<option value="Kolye">
+<option value="Bileklik">
+<option value="Yüzük">
+<option value="Toka">
+<option value="Bijuteri">
+</datalist>
+
+<label class="check">
+<input id="active" type="checkbox" checked>
+Ürün satışta olsun
+</label>
+<p class="note">
+Bu işareti kaldırıp kaydedersen ürün müşteri kataloğunda gizlenir.
+</p>
+<div class="actions">
+<button id="save" type="submit">Ürünü Kaydet</button>
+</div>
+</fieldset>
+</form>
+</section>
+
+<section>
+<h2>Eklediğim Ürünler</h2>
+<p class="note">
+Düzenle düğmesiyle fiyatı, fotoğrafı veya satış durumunu değiştirebilirsin.
+</p>
+<div id="list"></div>
+</section>
+</div>
+</main>
+
+<script src="./yb-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const $ = id => document.getElementById(id);
+const config = window.YB_CONFIG;
+let db, editingId = null, currentImage = "";
+let selectedFile = null, previewUrl = null;
+let rows = [], busy = false;
+
+const money = value => Number(value).toLocaleString(
+  "tr-TR", {style:"currency", currency:"TRY"}
+);
+
+function message(text) {
+  $("message").textContent = text;
+  $("message").hidden = !text;
+}
+
+function failure(error) {
+  message("İşlem tamamlanamadı: " +
+    (error.message || "Bağlantıyı kontrol edip tekrar dene."));
+}
+
+function releasePreview() {
+  if (previewUrl) URL.revokeObjectURL(previewUrl);
+  previewUrl = null;
+}
+
+function showImage(url) {
+  $("preview").hidden = !url;
+  if (url) $("preview").src = url;
+  else $("preview").removeAttribute("src");
+}
+
+function resetForm() {
+  releasePreview();
+  editingId = null;
+  currentImage = "";
+  selectedFile = null;
+  $("productForm").reset();
+  $("active").checked = true;
+  $("camera").value = "";
+  $("gallery").value = "";
+  $("formTitle").textContent = "Yeni Ürün Ekle";
+  $("save").textContent = "Ürünü Kaydet";
+  showImage("");
+}
+
+function choosePhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    message("Lütfen bir fotoğraf seç.");
+    event.target.value = "";
+    return;
+  }
+  releasePreview();
+  selectedFile = file;
+  previewUrl = URL.createObjectURL(file);
+  showImage(previewUrl);
+  message("");
+}
+
+async function preparePhoto(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const ratio = Math.min(
+      1, 1400 / Math.max(img.naturalWidth, img.naturalHeight)
+    );
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(img.naturalWidth * ratio));
+    canvas.height = Math.max(1, Math.round(img.naturalHeight * ratio));
+    const context = canvas.getContext("2d");
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return await new Promise((resolve, reject) => {
+      canvas.toBlob(
+        blob => blob ? resolve(blob) :
+          reject(new Error("Fotoğraf hazırlanamadı.")),
+        "image/jpeg", 0.82
+      );
+    });
+  } catch (error) {
+    throw new Error(
+      "Fotoğraf açılamadı. Galeriden JPG bir fotoğraf seçmeyi dene."
+    );
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function requireAdmin() {
+  const {data, error} = await db.auth.getUser();
+  if (error || !data.user || data.user.id !== config.adminId) {
+    throw new Error("Yönetici hesabıyla giriş yapmalısın.");
+  }
+  return data.user;
+}
+
+function editProduct(product) {
+  resetForm();
+  editingId = product.id;
+  currentImage = product.image || "";
+  $("name").value = product.name;
+  $("price").value = String(product.price).replace(".", ",");
+  $("category").value = product.category;
+  $("active").checked = product.active;
+  $("formTitle").textContent = "Ürünü Düzenle";
+  $("save").textContent = "Değişiklikleri Kaydet";
+  showImage(currentImage);
+  message("");
+  $("productForm").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+async function loadProducts() {
+  const {data, error} = await db.from("yb_products")
+    .select("*").order("created_at", {ascending:false});
+  if (error) throw error;
+  rows = data || [];
+  $("list").replaceChildren();
+  if (!rows.length) {
+    $("list").textContent = "Henüz ürün eklemedin.";
+    return;
+  }
+  rows.forEach(product => {
+    const row = document.createElement("div");
+    row.className = "product";
+    if (product.image) {
+      const image = document.createElement("img");
+      image.src = product.image;
+      image.alt = product.name;
+      image.loading = "lazy";
+      row.append(image);
+    }
+    const info = document.createElement("div");
+    info.className = "info";
+    const name = document.createElement("strong");
+    name.textContent = product.name;
+    const details = document.createElement("small");
+    details.textContent = product.category + " · " +
+      money(product.price) + " · " +
+      (product.active ? "Satışta" : "Gizli");
+    info.append(name, details);
+    const button = document.createElement("button");
+    button.className = "secondary";
+    button.textContent = "Düzenle";
+    button.disabled = busy;
+    button.onclick = () => { if (!busy) editProduct(product); };
+    row.append(info, button);
+    $("list").append(row);
+  });
+}
+
+function setBusy(value) {
+  busy = value;
+  $("fields").disabled = value;
+  $("newProduct").disabled = value;
+  $("logout").disabled = value;
+  $("list").querySelectorAll("button").forEach(
+    button => button.disabled = value
+  );
+}
+
+async function openPanel() {
+  await requireAdmin();
+  $("login").hidden = true;
+  $("panel").hidden = false;
+  try {
+    await loadProducts();
+  } catch (error) {
+    failure(error);
+  }
+}
+
+$("cameraButton").onclick = () => $("camera").click();
+$("galleryButton").onclick = () => $("gallery").click();
+$("camera").onchange = choosePhoto;
+$("gallery").onchange = choosePhoto;
+$("newProduct").onclick = () => {
+  resetForm();
+  message("");
+  $("productForm").scrollIntoView({behavior:"smooth"});
+};
+
+$("loginForm").onsubmit = async event => {
+  event.preventDefault();
+  if (!db) return;
+  $("loginButton").disabled = true;
+  message("Giriş yapılıyor...");
+  try {
+    const {data, error} = await db.auth.signInWithPassword({
+      email: $("email").value.trim(),
+      password: $("password").value
+    });
+    if (error) throw error;
+    if (data.user.id !== config.adminId) {
+      await db.auth.signOut();
+      throw new Error("Bu hesabın yönetici yetkisi yok.");
+    }
+    $("password").value = "";
+    message("");
+    await openPanel();
+  } catch (error) {
+    failure(error);
+  } finally {
+    $("loginButton").disabled = false;
+  }
+};
+
+$("logout").onclick = async () => {
+  const {error} = await db.auth.signOut();
+  if (error) return failure(error);
+  resetForm();
+  $("list").replaceChildren();
+  rows = [];
+  $("panel").hidden = true;
+  $("login").hidden = false;
+  message("Çıkış yapıldı.");
+};
+
+$("productForm").onsubmit = async event => {
+  event.preventDefault();
+  if (busy || !db) return;
+  const priceText = $("price").value.trim().replace(",", ".");
+  const price = Number(priceText);
+  const name = $("name").value.trim();
+  const category = $("category").value.trim();
+  if (!name || !category || !priceText ||
+      !Number.isFinite(price) || price < 0) {
+    message("Ürün adını, kategoriyi ve geçerli bir fiyatı yaz.");
+    return;
+  }
+  if (!selectedFile && !currentImage) {
+    message("Önce ürün fotoğrafını seç.");
+    return;
+  }
+
+  setBusy(true);
+  message("Ürün kaydediliyor...");
+  try {
+    await requireAdmin();
+    if (selectedFile) {
+      const blob = await preparePhoto(selectedFile);
+      const path = "products/" + crypto.randomUUID() + ".jpg";
+      const {error} = await db.storage.from(config.bucket)
+        .upload(path, blob, {
+          contentType:"image/jpeg", upsert:false
+        });
+      if (error) throw error;
+      currentImage = db.storage.from(config.bucket)
+        .getPublicUrl(path).data.publicUrl;
+      selectedFile = null;
+    }
+
+    const product = {
+      name,
+      price: Math.round(price * 100) / 100,
+      category,
+      image: currentImage,
+      active: $("active").checked
+    };
+    const query = editingId
+      ? db.from("yb_products").update(product).eq("id", editingId)
+      : db.from("yb_products").insert(product);
+    const {error} = await query.select("id").single();
+    if (error) throw error;
+    resetForm();
+    message("Ürün kaydedildi.");
+    try {
+      await loadProducts();
+    } catch (error) {
+      message("Ürün kaydedildi, ancak liste yenilenemedi. Sayfayı yenile.");
+    }
+  } catch (error) {
+    failure(error);
+  } finally {
+    setBusy(false);
+  }
+};
+
+async function start() {
+  try {
+    if (!config || !window.supabase) {
+      throw new Error("Bağlantı dosyaları yüklenemedi. Sayfayı yenile.");
+    }
+    db = window.supabase.createClient(config.url, config.key);
+    const {data, error} = await db.auth.getSession();
+    if (error) throw error;
+    if (data.session) await openPanel();
+  } catch (error) {
+    failure(error);
+  }
+}
+start();
+</script>
+</body>
+</html>
