@@ -72,6 +72,7 @@ function order(){
  Object.entries(cart).forEach(([i,q])=>{
  const p=products[i];if(!p)return;
  lines.push(`${p.name} - ${q} adet`);
+  if (p.image) lines.push(`Ürün fotoğrafı: ${p.image}`);
  total+=Number(p.price||0)*q;
  });
  lines.push("Toplam: "+money(total));
