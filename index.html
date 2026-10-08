@@ -1,21 +1,52 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>YB Accessories Katalog</title>
+<title>YB Accessories | Toptan Katalog</title>
 <style>
-body{font-family:Arial,sans-serif;margin:0;background:#f7f8f7;color:#222}
-header{background:#a8d9c7;padding:24px;text-align:center}
-h1{margin:0;font-size:27px}
-main{max-width:1100px;margin:auto;padding:20px}
-#products{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px}
-.card{background:white;padding:15px;border-radius:12px;box-shadow:0 2px 8px #ddd}
-.card img{width:100%;aspect-ratio:1;object-fit:cover}
-button{background:#157c60;color:white;border:0;padding:12px;border-radius:8px;cursor:pointer}
-.card button{width:100%}
-#cart{background:white;padding:20px;margin-top:25px;border-radius:12px}
+*{box-sizing:border-box}
+body{margin:0;background:#f7f8f7;color:#263b34;font-family:Arial,sans-serif;padding-bottom:150px}
+header{background:#a8d9c7;padding:24px 16px;text-align:center}
+h1{margin:0;font-size:25px;letter-spacing:2px}
+header p{margin:8px 0 0;font-size:14px}
+main{max-width:1100px;margin:auto;padding:16px}
+#categories{display:flex;gap:8px;overflow:auto;padding-bottom:12px}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.category{border:1px solid #d4ded8;background:white;border-radius:24px;padding:10px 18px;white-space:nowrap}
+.category.active{background:#a8d9c7;border-color:#a8d9c7}
+.tools{display:flex;gap:8px;margin:4px 0 18px}
+#search{width:100%;min-width:0;background:#eee;border:0;border-radius:24px;padding:14px}
+#sort{border:1px solid #d4ded8;background:white;border-radius:20px;padding:8px;max-width:120px}
+#products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{background:white;border:1px solid #e3e7e4;border-radius:20px;overflow:hidden}
+.photo{width:100%;aspect-ratio:1;background:#f1f0ed;display:flex;align-items:center;justify-content:center}
+.photo img{width:100%;height:100%;object-fit:contain}
+.info{padding:12px}
+.name{font-size:15px;margin:0 0 6px;line-height:1.4}
+.category-name{font-size:12px;color:#89938d;margin:0 0 12px}
+.price{font-size:19px;font-weight:bold;margin-bottom:12px}
+.quantity{display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid #eee;padding-top:12px}
+.quantity button{width:39px;height:40px;border:0;border-radius:12px;background:#a8d9c7;color:#263b34;font-size:24px;flex-shrink:0}
+.quantity input{width:100%;min-width:0;max-width:65px;height:40px;text-align:center;font-weight:bold;border:1px solid #e4e9e5;border-radius:10px;background:white}
+.quantity input::-webkit-inner-spin-button{appearance:none}
+.quantity input{appearance:textfield}
+#cart{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #dce5de;padding:12px 16px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px #0000000b}
+.cart-inner{max-width:1068px;margin:auto}
+.summary{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:15px}
+.summary small{display:block;color:#79877f;margin-top:4px}
+#order{width:100%;border:0;border-radius:12px;background:#157c60;color:white;padding:14px;font-weight:bold}
+#order:disabled{background:#afbab4;cursor:default}
+#status{text-align:center;color:#79877f;padding:20px}
+@media(min-width:700px){
+#products{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.name{font-size:18px}
+.info{padding:16px}
+}
+@media(min-width:1000px){
+#products{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
 </style>
 </head>
 <body>
@@ -23,60 +54,193 @@ button{background:#157c60;color:white;border:0;padding:12px;border-radius:8px;cu
 <h1>YB ACCESSORIES</h1>
 <p>Toptan Ürün Kataloğu</p>
 </header>
+
 <main>
-<h2>Ürünlerimiz</h2>
+<div id="categories"></div>
+<div class="tools">
+<input id="search" type="search" placeholder="Ürün ara…" aria-label="Ürün ara">
+<select id="sort" aria-label="Ürünleri sırala">
+<option value="default">Sırala</option>
+<option value="low">Fiyat artan</option>
+<option value="high">Fiyat azalan</option>
+</select>
+</div>
 <div id="products"></div>
-<section id="cart">
-<h2>Sepetim</h2>
-<div id="items">Sepetiniz boş.</div>
-<p id="total"></p>
-<button onclick="order()">WhatsApp ile Sipariş Ver</button>
-</section>
+<p id="status">Ürünler yükleniyor…</p>
 </main>
+
+<section id="cart">
+<div class="cart-inner">
+<div class="summary">
+<div><strong>Sepetim</strong><small id="count">0 ürün · 0 adet</small></div>
+<strong id="total">₺0,00</strong>
+</div>
+<button id="order" disabled>WhatsApp ile Sipariş Ver</button>
+</div>
+</section>
+
 <script>
-const phone="905368362895";
-let products=[],cart={};
-const money=n=>Number(n).toLocaleString("tr-TR",{style:"currency",currency:"TRY"});
-async function load(){
- try{
- const r=await fetch("./product.json",{cache:"no-store"})
- if(!r.ok)throw Error();
- const data=await r.json();
- products=Array.isArray(data)?data:data.products||[];
- document.getElementById("products").innerHTML=products.map((p,i)=>`
- <div class="card">
- ${p.image?`<img src="${p.image}" alt="">`:""}
- <h3>${p.name||"Ürün"}</h3>
- <p>${money(p.price||0)}</p>
- <button onclick="add(${i})">Sepete Ekle</button>
- </div>`).join("")||"Henüz ürün eklenmedi.";
- }catch(e){
- document.getElementById("products").textContent="Ürün listesi yüklenemedi.";
- }
+const phone = "905368362895";
+let products = [], category = "";
+const cart = new Map();
+const money = n => Number(n).toLocaleString("tr-TR", {
+  style: "currency", currency: "TRY"
+});
+
+function element(tag, className, text) {
+  const el = document.createElement(tag);
+  if (className) el.className = className;
+  if (text !== undefined) el.textContent = text;
+  return el;
 }
-function add(i){cart[i]=(cart[i]||0)+1;render()}
-function render(){
- let lines=[],total=0;
- Object.entries(cart).forEach(([i,q])=>{
- const p=products[i];if(!p)return;
- total+=Number(p.price||0)*q;
- lines.push(`${p.name} x ${q}`);
- });
- document.getElementById("items").textContent=lines.join(" | ")||"Sepetiniz boş.";
- document.getElementById("total").textContent=lines.length?"Toplam: "+money(total):"";
+
+function setQuantity(index, value) {
+  const number = Number(value);
+  const quantity = Number.isFinite(number)
+    ? Math.max(0, Math.min(99999, Math.floor(number))) : 0;
+  if (quantity) cart.set(index, quantity);
+  else cart.delete(index);
+  updateCart();
+  return quantity;
 }
-function order(){
- if(!Object.keys(cart).length){alert("Önce ürün ekleyin.");return}
- let lines=["Merhaba, YB Accessories sipariş talebim:"];
- let total=0;
- Object.entries(cart).forEach(([i,q])=>{
- const p=products[i];if(!p)return;
- lines.push(`${p.name} - ${q} adet`);
-  if (p.image) lines.push(`Ürün fotoğrafı: ${p.image}`);
- total+=Number(p.price||0)*q;
- });
- lines.push("Toplam: "+money(total));
- window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(lines.join("\n")),"_blank");
+
+function updateCart() {
+  let total = 0, quantity = 0;
+  cart.forEach((q, index) => {
+    total += Number(products[index].price || 0) * q;
+    quantity += q;
+  });
+  document.getElementById("count").textContent =
+    `${cart.size} ürün · ${quantity} adet`;
+  document.getElementById("total").textContent = money(total);
+  document.getElementById("order").disabled = cart.size === 0;
+}
+
+function renderCategories() {
+  const container = document.getElementById("categories");
+  container.replaceChildren();
+  const names = ["", ...new Set(
+    products.map(p => p.category).filter(Boolean)
+  )];
+  names.forEach(name => {
+    const button = element("button",
+      "category" + (category === name ? " active" : ""),
+      name || "Tümü");
+    button.onclick = () => {
+      category = name;
+      renderCategories();
+      renderProducts();
+    };
+    container.append(button);
+  });
+}
+
+function renderProducts() {
+  const container = document.getElementById("products");
+  container.replaceChildren();
+  const query = document.getElementById("search").value
+    .trim().toLocaleLowerCase("tr-TR");
+  let list = products.map((p, index) => ({ p, index }))
+    .filter(({p}) => (!category || p.category === category) &&
+      String(p.name || "").toLocaleLowerCase("tr-TR").includes(query));
+
+  const sort = document.getElementById("sort").value;
+  if (sort !== "default") list.sort((a,b) =>
+    sort === "low"
+      ? Number(a.p.price || 0) - Number(b.p.price || 0)
+      : Number(b.p.price || 0) - Number(a.p.price || 0));
+
+  list.forEach(({p, index}) => {
+    const card = element("article", "card");
+    const photo = element("div", "photo");
+    if (p.image) {
+      const img = element("img");
+      img.src = p.image;
+      img.alt = p.name || "Ürün";
+      img.loading = "lazy";
+      photo.append(img);
+    } else photo.textContent = "Fotoğraf hazırlanıyor";
+
+    const info = element("div", "info");
+    info.append(
+      element("h2", "name", p.name || "Ürün"),
+      element("p", "category-name", p.category || ""),
+      element("div", "price", money(p.price || 0))
+    );
+
+    const controls = element("div", "quantity");
+    const minus = element("button", "", "−");
+    const input = element("input");
+    const plus = element("button", "", "+");
+    input.type = "number";
+    input.min = "0";
+    input.max = "99999";
+    input.step = "1";
+    input.inputMode = "numeric";
+    input.value = cart.get(index) || 0;
+    input.setAttribute("aria-label", `${p.name || "Ürün"} adedi`);
+    minus.setAttribute("aria-label", "Adedi azalt");
+    plus.setAttribute("aria-label", "Adedi artır");
+
+    input.oninput = () => setQuantity(index, input.value);
+    input.onchange = () => {
+      input.value = setQuantity(index, input.value);
+    };
+    minus.onclick = () => {
+      input.value = setQuantity(index, (cart.get(index) || 0) - 1);
+    };
+    plus.onclick = () => {
+      input.value = setQuantity(index, (cart.get(index) || 0) + 1);
+    };
+
+    controls.append(minus, input, plus);
+    info.append(controls);
+    card.append(photo, info);
+    container.append(card);
+  });
+
+  document.getElementById("status").textContent =
+    list.length ? "" : "Ürün bulunamadı.";
+}
+
+document.getElementById("search").oninput = renderProducts;
+document.getElementById("sort").onchange = renderProducts;
+
+document.getElementById("order").onclick = () => {
+  if (!cart.size) return;
+  const lines = ["Merhaba, YB Accessories sipariş talebim:", ""];
+  let total = 0;
+  cart.forEach((q, index) => {
+    const p = products[index];
+    const subtotal = Number(p.price || 0) * q;
+    lines.push(`${p.name} — ${q} adet`);
+    lines.push(`Birim fiyat: ${money(p.price || 0)}`);
+    lines.push(`Tutar: ${money(subtotal)}`);
+    if (p.image) lines.push(`Ürün fotoğrafı: ${p.image}`);
+    lines.push("");
+    total += subtotal;
+  });
+  lines.push(`Toplam: ${money(total)}`);
+  window.open(
+    `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`,
+    "_blank", "noopener,noreferrer"
+  );
+};
+
+async function load() {
+  try {
+    const response = await fetch("./product.json", {cache:"no-store"});
+    if (!response.ok) throw new Error();
+    const data = await response.json();
+    products = Array.isArray(data) ? data : data.products;
+    if (!Array.isArray(products)) throw new Error();
+    renderCategories();
+    renderProducts();
+    updateCart();
+  } catch {
+    document.getElementById("status").textContent =
+      "Ürünler yüklenemedi. Sayfayı yenileyin.";
+  }
 }
 load();
 </script>
