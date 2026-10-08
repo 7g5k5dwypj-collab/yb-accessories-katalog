@@ -5,7 +5,7 @@
       "id": 1,
       "name": "Örnek Küpe",
       "price": 50,
-      "image": "",
+      "image": "https://sizfzdqldsjhlfckwcrk.supabase.co/storage/v1/object/public/product-name/IMG-20240830-WA0018.jpg",
       "category": "Küpe"
     },
     {
