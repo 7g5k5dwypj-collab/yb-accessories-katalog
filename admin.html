@@ -32,6 +32,14 @@ fieldset{border:0;padding:0;margin:0;min-width:0}
 .product strong{display:block;overflow-wrap:anywhere}
 .product small{display:block;margin-top:6px;color:#65766b}
 .note{color:#65766b;font-size:14px;line-height:1.5}
+.quick-price{display:flex;align-items:center;gap:8px;margin-top:9px;flex-wrap:wrap}
+.quick-price label{margin:0;font-size:13px;font-weight:normal}
+.quick-price input{width:125px!important;padding:9px!important;max-width:100%}
+.quick-price input.changed{border:2px solid #157c60;background:#effbf5}
+.quick-toolbar{position:sticky;bottom:0;background:white;padding:12px 0;border-top:1px solid #dbe8e1;z-index:2}
+.quick-toolbar button{width:100%}
+.quick-toolbar .note{margin:6px 0 0}
+@media(max-width:460px){.product{flex-wrap:wrap}.product .info{flex-basis:calc(100% - 90px)}.product>button{margin-left:auto}}
 a{color:#157c60}
 </style>
 </head>
@@ -121,9 +129,13 @@ Bu işareti kaldırıp kaydedersen ürün müşteri kataloğunda gizlenir.
 <section>
 <h2>Eklediğim Ürünler</h2>
 <p class="note">
-Düzenle düğmesiyle fiyatı, fotoğrafı veya satış durumunu değiştirebilirsin.
+Fiyatları aşağıdaki kutulardan değiştirip tek seferde kaydedebilirsin. Fotoğraf ve diğer bilgiler için Düzenle düğmesini kullan.
 </p>
 <div id="list"></div>
+<div class="quick-toolbar" id="quickToolbar" hidden>
+<button id="savePrices" type="button" disabled>Değişen Fiyatları Kaydet (0)</button>
+<p class="note" id="priceStatus" role="status" aria-live="polite">Henüz fiyat değiştirilmedi.</p>
+</div>
 </section>
 </div>
 </main>
@@ -136,6 +148,19 @@ const config = window.YB_CONFIG;
 let db, editingId = null, currentImage = "";
 let selectedFile = null, previewUrl = null;
 let rows = [], busy = false;
+const pendingPrices = new Map();
+function parseQuickPrice(value) {
+  const cleaned = value.trim().replace(',', '.');
+  if (!/^\d+(?:\.\d{1,2})?$/.test(cleaned)) return null;
+  const amount = Number(cleaned);
+  return Number.isFinite(amount) && amount >= 0 ? amount : null;
+}
+function refreshPriceToolbar() {
+  const count = pendingPrices.size;
+  $("savePrices").textContent = `Değişen Fiyatları Kaydet (${count})`;
+  $("savePrices").disabled = busy || count === 0;
+  $("priceStatus").textContent = count ? `${count} ürünün fiyatı değiştirildi. Kaydetmeye hazır.` : 'Henüz fiyat değiştirilmedi.';
+}
 
 const money = value => Number(value).toLocaleString(
   "tr-TR", {style:"currency", currency:"TRY"}
@@ -251,6 +276,9 @@ async function loadProducts() {
     .select("*").order("created_at", {ascending:false});
   if (error) throw error;
   rows = data || [];
+  pendingPrices.clear();
+  $("quickToolbar").hidden = !rows.length;
+  refreshPriceToolbar();
   $("list").replaceChildren();
   if (!rows.length) {
     $("list").textContent = "Henüz ürün eklemedin.";
@@ -274,7 +302,25 @@ async function loadProducts() {
     details.textContent = product.category + " · " +
       money(product.price) + " · " +
       (product.active ? "Satışta" : "Gizli");
-    info.append(name, details);
+    const quick = document.createElement("div");
+    quick.className = "quick-price";
+    const priceLabel = document.createElement("label");
+    const priceInput = document.createElement("input");
+    priceInput.type = "text";
+    priceInput.inputMode = "decimal";
+    priceInput.value = String(product.price).replace(".", ",");
+    priceInput.setAttribute("aria-label", `${product.name} yeni fiyatı (TL)`);
+    priceLabel.textContent = "Fiyat (TL):";
+    priceInput.addEventListener("input", () => {
+      const parsed = parseQuickPrice(priceInput.value);
+      const original = Number(product.price);
+      if (parsed !== null && parsed === original) pendingPrices.delete(product.id);
+      else pendingPrices.set(product.id, {price: parsed, input: priceInput});
+      priceInput.classList.toggle("changed", pendingPrices.has(product.id));
+      refreshPriceToolbar();
+    });
+    quick.append(priceLabel, priceInput);
+    info.append(name, details, quick);
     const button = document.createElement("button");
     button.className = "secondary";
     button.textContent = "Düzenle";
@@ -290,9 +336,10 @@ function setBusy(value) {
   $("fields").disabled = value;
   $("newProduct").disabled = value;
   $("logout").disabled = value;
-  $("list").querySelectorAll("button").forEach(
-    button => button.disabled = value
+  $("list").querySelectorAll("button, input").forEach(
+    element => element.disabled = value
   );
+  refreshPriceToolbar();
 }
 
 async function openPanel() {
@@ -305,6 +352,41 @@ async function openPanel() {
     failure(error);
   }
 }
+
+$("savePrices").onclick = async () => {
+  if (busy || !pendingPrices.size) return;
+  for (const [id, entry] of pendingPrices) {
+    if (entry.price === null) {
+      message("Geçersiz fiyat var. Lütfen fiyatları 195 veya 195,50 şeklinde yaz.");
+      entry.input.focus();
+      return;
+    }
+  }
+  const updates = [...pendingPrices.entries()];
+  setBusy(true);
+  message(`${updates.length} ürünün fiyatı kaydediliyor...`);
+  let saved = 0;
+  try {
+    await requireAdmin();
+    for (const [id, entry] of updates) {
+      const {data, error} = await db.from("yb_products")
+        .update({price: entry.price}).eq("id", id).select("id");
+      if (error) throw error;
+      if (!data || data.length !== 1) throw new Error("Ürün fiyatı güncellenemedi. Yetkileri kontrol edin.");
+      pendingPrices.delete(id);
+      saved++;
+    }
+    await loadProducts();
+    message(`${saved} ürünün fiyatı başarıyla güncellendi.`);
+  } catch (error) {
+    failure(error);
+    message(`${saved} fiyat kaydedildi, ${pendingPrices.size} fiyat kaydedilemedi. ` +
+      (error.message || "Bağlantıyı kontrol edin.") +
+      " Kalan fiyatları tekrar kaydedebilirsiniz.");
+  } finally {
+    setBusy(false);
+  }
+};
 
 $("cameraButton").onclick = () => $("camera").click();
 $("galleryButton").onclick = () => $("gallery").click();
@@ -347,6 +429,8 @@ $("logout").onclick = async () => {
   resetForm();
   $("list").replaceChildren();
   rows = [];
+  pendingPrices.clear();
+  $("quickToolbar").hidden = true;
   $("panel").hidden = true;
   $("login").hidden = false;
   message("Çıkış yapıldı.");
