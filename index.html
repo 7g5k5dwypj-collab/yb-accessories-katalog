@@ -89,7 +89,21 @@ const $ = id => document.getElementById(id);
 const phone = "905368362895";
 const cart = new Map();
 let products = [], category = "";
+// 7-14 Kasım 2026 kampanyası
+const campaignActive = () => {
+  const now = new Date();
+  const date = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Istanbul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(now);
 
+  return date >= "2026-11-07" && date <= "2026-11-14";
+};
+
+const discountedPrice = price =>
+  campaignActive() ? Math.round(Number(price) * 80) / 100 : Number(price);
 const money = value => Number(value).toLocaleString(
   "tr-TR", {style:"currency", currency:"TRY"}
 );
@@ -118,7 +132,7 @@ function updateCart() {
     if (!quantity) return;
     kinds++;
     units += quantity;
-    total += Math.round(Number(product.price) * 100) * quantity;
+    total += Math.round(discountedPrice(product.price) * 100) * quantity;
   });
   $("count").textContent = kinds + " ürün · " + units + " adet";
   $("total").textContent = money(total / 100);
@@ -193,7 +207,7 @@ function renderProducts() {
     details.append(
       element("h2", "", product.name),
       element("p", "category", product.category),
-      element("p", "price", money(product.price))
+      element("p", "price", money(discountedPrice(product.price))
     );
 
     const controls = element("div", "quantity");
@@ -247,11 +261,11 @@ $("order").onclick = () => {
   products.forEach(product => {
     const quantity = cart.get(product.id) || 0;
     if (!quantity) return;
-    const subtotal = Math.round(Number(product.price) * 100) * quantity;
+    const subtotal = Math.round(discountedPrice(product.price) * 100) * quantity;
     total += subtotal;
     lines.push(
       product.name + " — " + quantity + " adet",
-      "Birim fiyat: " + money(product.price),
+      "Birim fiyat: " + money(discountedPrice(product.price)),
       "Tutar: " + money(subtotal / 100)
     );
     if (product.image) {
