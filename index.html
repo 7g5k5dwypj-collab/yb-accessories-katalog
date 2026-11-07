@@ -207,7 +207,7 @@ function renderProducts() {
     details.append(
       element("h2", "", product.name),
       element("p", "category", product.category),
-      element("p", "price", money(discountedPrice(product.price))
+     element("p", "price", money(discountedPrice(product.price))))
     );
 
     const controls = element("div", "quantity");
