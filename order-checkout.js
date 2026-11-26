@@ -19,13 +19,14 @@
     }
     if (!items.length) return;
     lines.push('Toplam: ' + money(total / 100));
+    const fallbackLines = [...lines];
     busy = true; button.disabled = true;
     const original = button.textContent;
     button.textContent = 'Sipariş hazırlanıyor…';
     const tab = window.open('about:blank', '_blank');
     if (tab) tab.opener = null;
     try {
-      const response = await fetch('/api/order-export', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({items})});
+      const response = await fetch('/api/order-export', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({items}), signal:AbortSignal.timeout(12000)});
       if (!response.ok) throw Error('Sipariş kaydedilemedi');
       const data = await response.json();
       if (!Array.isArray(data.snapshot)) throw Error('Invalid snapshot');
@@ -44,7 +45,11 @@
       }
       const target = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(lines.join('\n'));
       if (tab && !tab.closed) tab.location.replace(target); else location.assign(target);
-    } catch (error) { if (tab && !tab.closed) tab.close(); console.error('Order export failed', error); }
+    } catch (error) {
+      console.error('Order export failed');
+      const target = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(fallbackLines.join('\n'));
+      if (tab && !tab.closed) tab.location.replace(target); else location.assign(target);
+    }
     finally { busy = false; button.textContent = original; updateCart(); }
   };
 })();
