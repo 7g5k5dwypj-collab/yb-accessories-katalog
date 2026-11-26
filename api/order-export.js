@@ -4,6 +4,7 @@ module.exports = async (req,res) => {
   if(req.method !== 'POST') return res.status(405).end();
   const base=process.env.SUPABASE_URL, key=process.env.SUPABASE_SERVICE_ROLE_KEY;
   if(!base || !key) return res.status(503).json({error:'Configuration missing'});
+  try { const u=new URL(base); if(u.protocol!=='https:' || !u.hostname.endsWith('.supabase.co') || u.username || u.password || u.search || u.hash || u.pathname!=='/') throw Error(); } catch { console.error('Order export: invalid SUPABASE_URL'); return res.status(503).json({error:'Invalid configuration'}); }
   const headers={apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'};
   let stage='validate';
   try {
@@ -28,5 +29,5 @@ module.exports = async (req,res) => {
     const r=await fetch(`${base}/rest/v1/yb_order_exports`,{method:'POST',headers,body:JSON.stringify({token,snapshot})});
     if(!r.ok) throw Error('Storage failed: HTTP '+r.status);
     return res.status(201).json({totalCents:snapshot.reduce((sum,x)=>sum+x.unitCents*x.quantity,0),snapshot,token,pdfUrl:`/api/order-export/${token}/pdf`,excelUrl:`/api/order-export/${token}/excel`});
-  } catch (err) {console.error('Order export failure', {stage, reason: err instanceof Error ? err.message.replace(/https?:\/\/\S+/g,'[url]').slice(0,180) : 'Unknown error'}); return res.status(500).json({error:'Order could not be saved'});}
+  } catch (err) {console.error('Order export failure', {stage, reason: err instanceof Error && /^(Products unavailable|Storage failed): HTTP [0-9]{3}$/.test(err.message) ? err.message : 'Internal failure'}); return res.status(500).json({error:'Order could not be saved'});}
 };
