@@ -1,7 +1,12 @@
-
 {
   "name": "yb-accessories-katalog",
   "version": "1.0.0",
   "private": true,
-  "description": "YB Accessories Toptan Urun Katalogu"
+  "description": "YB Accessories Toptan Urun Katalogu",
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "pdfkit": "^0.16.0",
+    "sharp": "^0.33.5",
+    "pdfmake": "0.2.20"
+  }
 }
